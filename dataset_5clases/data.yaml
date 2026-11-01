@@ -1,0 +1,11 @@
+path: 'C:/Users/Cocot/Desktop/yolo_monedas_colombia - copia/dataset_5clases'
+train: images/train
+val: images/val
+test: images/test
+nc: 5
+names:
+  0: 1000_pesos
+  1: 100_pesos
+  2: 200_pesos
+  3: 500_pesos
+  4: 50_pesos

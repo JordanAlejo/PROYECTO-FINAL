@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [],
+      "stopAtEntry": false,
+      "externalConsole": true,
+      "cwd": "c:/Users/Cocot/OneDrive/Documentos/1. MATERIAS UNIVERSIDAD MILITAR NUEVA GRANADA/QUINTO SEMESTRE/Micros/PROYECTO-FINAL",
+      "program": "c:/Users/Cocot/OneDrive/Documentos/1. MATERIAS UNIVERSIDAD MILITAR NUEVA GRANADA/QUINTO SEMESTRE/Micros/PROYECTO-FINAL/build/Debug/outDebug",
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    }
+  ]
+}
