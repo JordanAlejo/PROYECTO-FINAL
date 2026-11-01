@@ -1,43 +1,48 @@
-# 🪙 Clasificador Automatizado de Monedas Colombianas mediante Visión Artificial
+# Sistema Automatizado de Clasificación de Monedas Colombianas mediante Visión Artificial
 
-<p align="center">
-
-**Sistema inteligente de identificación y clasificación de monedas colombianas utilizando YOLO, Python y ESP32.**
-
-Proyecto de integración de visión artificial, programación, electrónica y control electromecánico para la clasificación automática de monedas.
-
-</p>
+**Integración de YOLO, Python, ESP32 y control electromecánico**
 
 ---
 
-## 📌 1. Descripción general
+## 1. Descripción general
 
-El proyecto consiste en el diseño e implementación de un sistema automatizado capaz de identificar y clasificar monedas colombianas de diferentes denominaciones y diseños mediante técnicas de visión artificial, utilizando el modelo de detección de objetos YOLO, desarrollado e implementado en Python desde Visual Studio Code.
+El presente proyecto consiste en el diseño e implementación de un sistema automatizado para la identificación y clasificación de monedas colombianas de diferentes denominaciones y diseños, mediante técnicas de visión artificial y control electromecánico.
 
-El sistema integra componentes de software, electrónica y mecánica para realizar el proceso de clasificación de manera automática.
+El sistema utiliza un modelo de detección de objetos YOLO, desarrollado e implementado en Python mediante el entorno de programación Visual Studio Code. Su funcionamiento integra procesamiento digital de imágenes, comunicación serial, sistemas embebidos y mecanismos de posicionamiento.
 
-Las monedas ingresan individualmente mediante una rampa de alimentación, desplazándose hasta una zona de inspección. En esta posición, cada moneda se detiene temporalmente para permitir que una cámara capture su imagen.
+El proceso comienza con la alimentación individual de las monedas mediante una rampa diseñada para facilitar su desplazamiento por gravedad. Posteriormente, cada moneda llega a una zona de inspección, donde se detiene temporalmente para permitir la captura de su imagen mediante una cámara.
 
-Posteriormente, el modelo YOLO procesa la imagen, identifica la moneda y determina su denominación y diseño.
+La imagen obtenida es procesada por el modelo YOLO, encargado de identificar la denominación y el diseño de la moneda. Una vez determinada la clase, el programa establece una correspondencia entre el resultado de la detección y el código de control asociado al destino de clasificación.
 
-Una vez realizada la identificación, el programa desarrollado en Python transmite una instrucción mediante comunicación serial USB hacia un microcontrolador ESP32. Este interpreta la información recibida y controla dos actuadores:
+La información se transmite mediante comunicación serial USB hacia un microcontrolador ESP32, encargado de controlar dos actuadores:
 
-- **Motor paso a paso:** posiciona el mecanismo de selección en el ángulo correspondiente.
-- **Servomotor:** acciona el mecanismo de direccionamiento para permitir el paso de la moneda hacia el compartimento asignado.
+- **Motor paso a paso:** posiciona el mecanismo de selección en el ángulo correspondiente a la moneda identificada.
+- **Servomotor:** acciona el mecanismo de direccionamiento para permitir el desplazamiento de la moneda hacia el compartimento asignado.
 
 Finalmente, la moneda continúa su recorrido por la estructura mecánica hasta llegar al almacén correspondiente.
 
-## 🎯 2. Objetivo general
+## 2. Objetivos
 
-Desarrollar un sistema automatizado de clasificación de monedas colombianas que integre visión artificial mediante YOLO, programación en Python y control electromecánico mediante un microcontrolador ESP32, con el propósito de identificar diferentes denominaciones y diseños de monedas y dirigirlas hacia sus respectivos compartimentos de almacenamiento.
+### 2.1. Objetivo general
 
-## ⚙️ 3. Funcionamiento general del sistema
+Desarrollar un sistema automatizado para la clasificación de monedas colombianas mediante la integración de visión artificial con YOLO, programación en Python y control electromecánico mediante un microcontrolador ESP32, con el propósito de identificar diferentes denominaciones y diseños y dirigir cada moneda hacia su respectivo compartimento de almacenamiento.
 
-El funcionamiento del prototipo se desarrolla mediante las siguientes etapas:
+### 2.2. Objetivos específicos
+
+- Implementar un modelo de detección de objetos YOLO entrenado para reconocer diferentes diseños de monedas colombianas.
+- Desarrollar un programa en Python para capturar, procesar y analizar imágenes mediante OpenCV.
+- Establecer una correspondencia entre las clases detectadas por el modelo y las instrucciones de clasificación.
+- Implementar la comunicación serial USB entre el computador y el microcontrolador ESP32.
+- Desarrollar un sistema de posicionamiento mediante un motor paso a paso y un servomotor.
+- Integrar los componentes electrónicos y mecánicos para realizar la clasificación física de las monedas.
+
+## 3. Funcionamiento del sistema
+
+El funcionamiento general del prototipo se desarrolla mediante las siguientes etapas:
 
 ### 3.1. Alimentación de monedas
 
-Las monedas ingresan individualmente a través de una rampa diseñada para facilitar su desplazamiento por gravedad.
+Las monedas ingresan individualmente al sistema mediante una rampa diseñada para facilitar su desplazamiento por gravedad.
 
 ### 3.2. Posicionamiento e inspección
 
@@ -45,46 +50,38 @@ Cada moneda llega a una zona de inspección, donde se detiene temporalmente para
 
 ### 3.3. Captura y procesamiento de imágenes
 
-Una cámara conectada al computador captura la imagen de la moneda.
+Una cámara conectada al computador captura la imagen de la moneda. Posteriormente, Python procesa la información visual utilizando un modelo YOLO previamente entrenado con imágenes de las monedas seleccionadas.
 
-El programa desarrollado en Python procesa la imagen utilizando un modelo YOLO previamente entrenado con fotografías de las monedas seleccionadas.
+### 3.4. Identificación y clasificación
 
-### 3.4. Identificación de la moneda
+El modelo YOLO analiza la imagen y determina la clase a la que pertenece la moneda. Para aceptar una detección, se establece un umbral mínimo de confianza del 25 %, configurado mediante el parámetro `conf=0.25`.
 
-El modelo YOLO analiza la imagen y determina la clase a la que pertenece la moneda.
+### 3.5. Selección del destino
 
-La detección debe cumplir con un umbral mínimo de confianza del 25 %, establecido mediante el parámetro `conf=0.25`.
+Python obtiene el identificador de la clase detectada y consulta una tabla de correspondencias que relaciona cada tipo de moneda con una instrucción numérica para el ESP32.
 
-### 3.5. Selección de la clasificación
+### 3.6. Comunicación con el microcontrolador
 
-Python obtiene el identificador de la clase detectada y consulta una correspondencia entre las clases de YOLO y los códigos de control del ESP32.
-
-De esta manera, se determina el compartimento hacia el cual debe dirigirse la moneda.
-
-### 3.6. Comunicación serial
-
-Una vez determinada la clasificación, Python transmite un código numérico mediante comunicación serial USB hacia el ESP32.
+Una vez determinada la clasificación, el programa transmite el código correspondiente mediante comunicación serial USB hacia el ESP32.
 
 ### 3.7. Accionamiento electromecánico
 
-El ESP32 interpreta el código recibido y ejecuta dos movimientos:
+El microcontrolador interpreta la instrucción recibida y ejecuta la secuencia de movimiento:
 
-1. El motor paso a paso gira hasta alcanzar el ángulo correspondiente.
-2. El servomotor gira hasta 180° y posteriormente regresa a su posición inicial de 0°.
+1. El motor paso a paso gira hasta alcanzar el ángulo establecido para la clasificación.
+2. El servomotor gira hasta 180°, acciona el mecanismo de direccionamiento y posteriormente regresa a su posición inicial de 0°.
 
 ### 3.8. Clasificación y almacenamiento
 
-El mecanismo permite que la moneda continúe su desplazamiento por la rampa hacia el compartimento asignado.
+El mecanismo permite que la moneda continúe su desplazamiento por la rampa hasta llegar al compartimento asignado.
 
-Después de completar la operación, el sistema queda preparado para procesar la siguiente moneda.
+Una vez finalizado el proceso, el sistema queda preparado para procesar la siguiente moneda.
 
----
+## 4. Clasificaciones reconocidas
 
-## 🪙 4. Clases de monedas reconocidas
+El modelo de visión artificial fue entrenado para reconocer nueve clases correspondientes a diferentes denominaciones y diseños de monedas colombianas.
 
-El modelo de visión artificial fue entrenado para reconocer nueve tipos de monedas colombianas:
-
-| ID YOLO | Denominación | Diseño |
+| Identificador | Denominación | Diseño |
 |:---:|:---:|:---:|
 | 0 | $50 | Antigua |
 | 1 | $50 | Nueva |
@@ -96,20 +93,18 @@ El modelo de visión artificial fue entrenado para reconocer nueve tipos de mone
 | 7 | $500 | Nueva |
 | 8 | $1.000 | Única |
 
-Cada clase representa un diseño físico diferente y tiene asociado un destino de clasificación.
+Cada clase representa una característica física diferenciada y tiene asociado un destino de clasificación.
 
-La selección definitiva de las clases se estableció a partir de las versiones físicas de las monedas utilizadas durante el desarrollo del proyecto.
+La selección de las clases se estableció a partir de las versiones físicas de las monedas utilizadas durante el desarrollo del proyecto.
 
----
+## 5. Herramientas y tecnologías
 
-## 🧰 5. Herramientas y tecnologías utilizadas
-
-| Tecnología | Aplicación |
+| Tecnología o componente | Aplicación |
 |---|---|
-| Python | Procesamiento de imágenes, identificación y lógica de clasificación. |
+| Python | Procesamiento de imágenes y lógica de clasificación. |
 | YOLO | Detección e identificación de monedas. |
 | Ultralytics | Implementación y ejecución del modelo YOLO. |
-| OpenCV | Captura y procesamiento de imágenes mediante cámara. |
+| OpenCV | Captura y procesamiento de imágenes. |
 | Visual Studio Code | Entorno de desarrollo y depuración. |
 | ESP32 | Control del sistema electromecánico. |
 | Arduino IDE | Programación del microcontrolador. |
@@ -117,29 +112,27 @@ La selección definitiva de las clases se estableció a partir de las versiones 
 | Stepper | Control del motor paso a paso. |
 | PySerial | Comunicación serial entre Python y ESP32. |
 | Cámara | Captura de imágenes de las monedas. |
-| Motor paso a paso | Selección angular del mecanismo. |
+| Motor paso a paso | Posicionamiento angular del mecanismo. |
 | Servomotor | Accionamiento del mecanismo de direccionamiento. |
 
 ---
 
-# 💻 6. Desarrollo del software
+# 6. Desarrollo e implementación del software
 
-El proyecto se divide en dos módulos principales:
+La arquitectura de programación se divide en dos módulos principales:
 
-- **Módulo de visión artificial (Python):** realiza la captura de imágenes, detección, identificación y selección de la clasificación.
-- **Módulo de control electromecánico (ESP32):** recibe las instrucciones y controla los actuadores encargados de direccionar las monedas.
+1. **Módulo de visión artificial:** desarrollado en Python, encargado de capturar imágenes, realizar detecciones mediante YOLO e identificar la clase correspondiente.
+2. **Módulo de control electromecánico:** desarrollado para el ESP32, encargado de interpretar las instrucciones recibidas y controlar los actuadores.
 
-## 👁️ 6.1. Módulo de visión artificial mediante YOLO
+## 6.1. Módulo de visión artificial mediante YOLO
 
-Este módulo constituye la etapa de reconocimiento del sistema automatizado.
+El módulo de visión artificial constituye la etapa de reconocimiento del sistema. Su función es detectar las monedas presentes en una imagen, identificar su denominación y diseño y determinar la clase a la que pertenece cada objeto.
 
-Su función principal es detectar las monedas presentes en una imagen, identificar su denominación y diseño, y determinar la clase a la que pertenece cada objeto.
+Para esta implementación se utilizó YOLO (You Only Look Once), un modelo de detección de objetos entrenado con imágenes de monedas colombianas.
 
-Para realizar esta tarea se utilizó YOLO (You Only Look Once), un modelo de detección de objetos entrenado con imágenes de monedas colombianas.
+El programa utiliza las bibliotecas Ultralytics YOLO y OpenCV.
 
-El programa fue desarrollado en Python utilizando las bibliotecas Ultralytics YOLO y OpenCV.
-
-### 6.1.1. Librerías utilizadas
+### 6.1.1. Importación de bibliotecas
 
 ```python
 import os
@@ -149,13 +142,13 @@ import cv2
 from ultralytics import YOLO
 ```
 
-**Explicación:**
+**Descripción de las bibliotecas:**
 
-- `os`: permite gestionar directorios, rutas y archivos.
-- `sys`: permite recibir argumentos desde la terminal y finalizar el programa cuando ocurre un error.
+- `os`: permite gestionar directorios, rutas y archivos del sistema operativo.
+- `sys`: permite recibir argumentos desde la terminal y controlar la ejecución del programa.
 - `glob`: permite buscar archivos que coincidan con determinados patrones.
 - `cv2`: corresponde a OpenCV, utilizada para capturar, procesar y visualizar imágenes.
-- `YOLO`: permite cargar el modelo entrenado y ejecutar las predicciones.
+- `YOLO`: permite cargar el modelo entrenado y ejecutar las predicciones de detección.
 
 ### 6.1.2. Configuración de la ruta del proyecto
 
@@ -163,9 +156,9 @@ from ultralytics import YOLO
 ROOT = r"C:\Users\Cocot\Desktop\yolo_monedas_colombia - copia"
 ```
 
-Esta variable almacena la ubicación principal del proyecto.
+Esta variable almacena la ubicación principal del proyecto. A partir de ella se construyen las rutas necesarias para localizar los pesos del modelo, las imágenes de prueba y los resultados generados.
 
-A partir de ella se construyen las rutas necesarias para localizar los archivos del modelo, las imágenes de prueba y los resultados generados.
+La ruta debe ajustarse a la ubicación del proyecto en el equipo donde se ejecute el programa.
 
 ### 6.1.3. Búsqueda y carga del modelo entrenado
 
@@ -193,16 +186,16 @@ Esta sección permite localizar automáticamente los pesos del modelo YOLO.
 
 Durante el entrenamiento se generan archivos que contienen los parámetros aprendidos por la red neuronal:
 
-- `best.pt`: contiene los pesos correspondientes al mejor rendimiento obtenido durante el entrenamiento.
-- `last.pt`: contiene los pesos guardados al finalizar la última época de entrenamiento.
+- `best.pt`: almacena los pesos correspondientes al mejor rendimiento obtenido durante el entrenamiento.
+- `last.pt`: almacena los pesos guardados al finalizar la última época de entrenamiento.
 
-El programa busca primero los archivos `best.pt`. Si no encuentra ninguno, intenta localizar los archivos `last.pt`.
+El programa busca inicialmente los archivos `best.pt`. Si no encuentra ninguno, intenta localizar los archivos `last.pt`.
 
-Cuando encuentra varios modelos, selecciona el archivo modificado más recientemente mediante `os.path.getmtime()`.
+Cuando existen varios modelos disponibles, selecciona el archivo modificado más recientemente mediante `os.path.getmtime()`.
 
-Finalmente, carga el modelo utilizando `YOLO(WEIGHTS)` para dejarlo preparado para realizar las detecciones.
+Finalmente, se utiliza `YOLO(WEIGHTS)` para cargar el modelo y prepararlo para realizar las detecciones.
 
-### 6.1.4. Identificación de monedas mediante imágenes
+### 6.1.4. Detección mediante imágenes almacenadas
 
 ```python
 def show_image(path):
@@ -238,7 +231,7 @@ def show_image(path):
 
 Esta función permite evaluar una imagen utilizando el modelo YOLO.
 
-Su funcionamiento es el siguiente:
+Su funcionamiento se desarrolla mediante las siguientes operaciones:
 
 1. `cv2.imread(path)` carga la imagen desde la ubicación indicada.
 2. Se verifica que la imagen haya sido leída correctamente.
@@ -251,7 +244,7 @@ Su funcionamiento es el siguiente:
 
 El resultado permite visualizar las monedas detectadas, sus respectivas clases y los niveles de confianza.
 
-### 6.1.5. Identificación de monedas mediante cámara web
+### 6.1.5. Detección mediante cámara web
 
 ```python
 def webcam():
@@ -292,17 +285,13 @@ def webcam():
 
 Esta función permite realizar detecciones en tiempo real utilizando una cámara conectada al computador.
 
-**Funcionamiento:**
+El procedimiento inicia con la apertura del dispositivo mediante `cv2.VideoCapture(0)`. Posteriormente, se capturan continuamente fotogramas utilizando `cap.read()`.
 
-1. Se inicializa la cámara mediante `cv2.VideoCapture(0)`.
-2. Se verifica que el dispositivo esté disponible.
-3. Se capturan continuamente imágenes mediante `cap.read()`.
-4. Cada fotograma se procesa utilizando el modelo YOLO.
-5. Se muestran las detecciones en una ventana de OpenCV.
-6. El proceso continúa hasta que el usuario presiona la tecla `q`.
-7. Finalmente, se libera la cámara y se cierran las ventanas.
+Cada imagen capturada es procesada por YOLO y el resultado se presenta en una ventana de OpenCV mediante `cv2.imshow()`.
 
-### 6.1.6. Ejecución principal del programa
+El proceso continúa hasta que el usuario presiona la tecla `q`. Finalmente, se libera la cámara y se cierran las ventanas.
+
+### 6.1.6. Control de ejecución principal
 
 ```python
 if __name__ == "__main__":
@@ -336,29 +325,19 @@ Este bloque determina el modo de ejecución del programa.
 
 Se establecieron dos modalidades:
 
-**Modo 1. Detección mediante cámara web**
+**Detección mediante cámara web:** cuando se ejecuta el programa con el argumento `webcam`, se activa la función encargada de capturar y procesar imágenes en tiempo real.
 
-Cuando se ejecuta el programa con el argumento `webcam`, se activa la función encargada de capturar y procesar imágenes en tiempo real.
-
-**Modo 2. Detección mediante imagen**
-
-Cuando se proporciona una ruta de imagen, el programa procesa directamente el archivo indicado.
-
-Si no se proporciona una ruta, busca automáticamente una imagen dentro del conjunto de validación.
+**Detección mediante imagen:** cuando se proporciona una ruta de imagen, el programa procesa directamente el archivo indicado. Si no se proporciona una ruta, busca automáticamente una imagen dentro del conjunto de validación.
 
 ---
 
-## 🧠 6.2. Identificación de clases y selección de casos
+## 6.2. Identificación de clases y selección de casos
 
-Una vez que YOLO detecta una moneda, el programa obtiene la información de la detección mediante el objeto de resultados.
+Una vez que YOLO detecta una moneda, el programa puede obtener la información correspondiente mediante el objeto de resultados de la predicción.
 
-Cada detección contiene información como:
+Cada detección contiene información como el identificador de clase, el nivel de confianza y las coordenadas del objeto detectado.
 
-- Identificador de clase.
-- Nivel de confianza.
-- Coordenadas del objeto detectado.
-
-### 6.2.1. Obtener la clase detectada
+### 6.2.1. Obtención de la clase detectada
 
 ```python
 for box in res.boxes:
@@ -374,20 +353,20 @@ for box in res.boxes:
     print("Confianza:", confianza)
 ```
 
-**Explicación:**
+**Descripción de los elementos:**
 
 - `res.boxes`: contiene las detecciones realizadas por YOLO.
 - `box.cls[0]`: obtiene el identificador numérico de la clase detectada.
 - `box.conf[0]`: obtiene el nivel de confianza de la detección.
 - `model.names`: permite consultar el nombre asociado a la clase.
 
-De esta manera, el programa puede conocer si la moneda detectada corresponde a una moneda de $50, $100, $200, $500 o $1.000, distinguiendo sus diferentes diseños.
+Mediante esta información, el programa puede determinar si la moneda corresponde a una denominación de $50, $100, $200, $500 o $1.000, distinguiendo los diferentes diseños.
 
-### 6.2.2. Correspondencia entre YOLO y el ESP32
+### 6.2.2. Correspondencia entre las clases YOLO y el ESP32
 
 Para realizar la clasificación electromecánica, cada clase detectada debe asociarse con una instrucción numérica que el ESP32 pueda interpretar.
 
-La siguiente tabla representa la correspondencia propuesta entre las nueve clases del modelo y las opciones del menú del microcontrolador:
+La siguiente tabla representa la correspondencia propuesta entre las nueve clases del modelo y las opciones del menú del microcontrolador.
 
 | ID YOLO | Moneda identificada | Código ESP32 | Ángulo |
 |:---:|---|:---:|:---:|
@@ -401,7 +380,7 @@ La siguiente tabla representa la correspondencia propuesta entre las nueve clase
 | 7 | $500 nueva | 9 | 285° |
 | 8 | $1.000 | 10 | 320° |
 
-**Importante:** la correspondencia anterior es una propuesta basada en el orden de clases descrito y en los ángulos del programa ESP32. Debe coincidir con el orden real de `data.yaml` y la ubicación física de los almacenes.
+La correspondencia se debe verificar con los nombres y el orden reales de las clases definidos en el archivo `data.yaml`, así como con la distribución física de los compartimentos.
 
 ### 6.2.3. Diccionario de clasificación
 
@@ -423,7 +402,7 @@ Este diccionario relaciona los identificadores de las clases YOLO con las opcion
 
 Cuando se detecta una moneda, el programa consulta su identificador y obtiene el código que debe transmitirse al microcontrolador.
 
-### 6.2.4. Selección automática del caso
+### 6.2.4. Selección automática del caso correspondiente
 
 ```python
 for box in res.boxes:
@@ -449,19 +428,17 @@ Este fragmento permite seleccionar automáticamente el caso correspondiente a la
 
 Primero se obtiene el identificador de clase y se verifica que la confianza sea igual o superior al 25 %.
 
-Después se consulta el diccionario de clasificación para obtener el código que representa el destino de la moneda.
+Posteriormente, se consulta el diccionario de clasificación para obtener el código que representa el destino de la moneda.
 
 Si la clase no se encuentra dentro del diccionario, se informa que no fue reconocida.
 
 ---
 
-## 🔌 6.3. Comunicación serial entre Python y ESP32
+## 6.3. Comunicación serial entre Python y ESP32
 
 La comunicación entre el computador y el microcontrolador se realiza mediante un puerto serial USB.
 
-Python transmite un código numérico que representa la clasificación realizada por YOLO.
-
-El ESP32 recibe este código y ejecuta la secuencia de movimiento correspondiente.
+Python transmite un código numérico que representa la clasificación realizada por YOLO. El ESP32 recibe esta instrucción y ejecuta la secuencia de movimiento correspondiente.
 
 ### 6.3.1. Configuración de la comunicación
 
@@ -478,15 +455,15 @@ esp32 = serial.Serial(
 time.sleep(2)
 ```
 
-**Explicación:**
+**Descripción de los parámetros:**
 
 - `serial.Serial()`: establece la conexión con el ESP32.
-- `COM3`: representa el puerto USB asignado al microcontrolador. Debe reemplazarse por el puerto correspondiente.
+- `COM3`: representa el puerto USB asignado al microcontrolador y debe reemplazarse por el correspondiente.
 - `baudrate=115200`: establece la velocidad de transmisión.
 - `timeout=1`: establece el tiempo máximo de espera para las operaciones de lectura.
 - `time.sleep(2)`: permite que el ESP32 termine de inicializarse.
 
-### 6.3.2. Función para enviar la clasificación
+### 6.3.2. Función de transmisión de instrucciones
 
 ```python
 def enviar_moneda(esp32, opcion):
@@ -506,8 +483,10 @@ El ESP32 recibe el número y ejecuta el movimiento correspondiente del motor pas
 
 ### 6.3.3. Secuencia de comunicación
 
+La integración entre los módulos se desarrolla mediante la siguiente secuencia:
+
 1. YOLO detecta una moneda.
-2. Python obtiene el identificador de clase.
+2. Python obtiene el identificador de la clase.
 3. Se consulta el diccionario de clasificación.
 4. Se determina el código asociado a la moneda.
 5. Python transmite el código al ESP32.
@@ -515,11 +494,11 @@ El ESP32 recibe el número y ejecuta el movimiento correspondiente del motor pas
 7. El motor paso a paso selecciona la posición correspondiente.
 8. El servomotor acciona el mecanismo de direccionamiento.
 
-**Nota técnica:** los fragmentos anteriores documentan la integración de los módulos. Para evitar movimientos repetidos, el envío real debe realizarse una sola vez por cada moneda procesada y no en cada fotograma de la cámara.
+**Consideración de implementación:** la transmisión debe realizarse una sola vez por cada moneda procesada. En una aplicación con cámara en tiempo real es necesario evitar que la misma moneda genere múltiples instrucciones mientras permanece dentro del campo de visión.
 
 ---
 
-## ⚙️ 6.4. Módulo de control electromecánico mediante ESP32
+## 6.4. Módulo de control electromecánico mediante ESP32
 
 Este módulo se encarga de controlar el posicionamiento del mecanismo de selección y el movimiento del servomotor.
 
@@ -533,13 +512,13 @@ Su funcionamiento se basa en recibir una opción numérica, determinar el ángul
 #include <math.h>
 ```
 
-**Explicación:**
+**Descripción:**
 
 - `ESP32Servo.h`: permite controlar el servomotor conectado al ESP32.
 - `Stepper.h`: proporciona las funciones necesarias para controlar el motor paso a paso.
 - `math.h`: permite utilizar funciones matemáticas, como `round()`, para redondear el número de pasos calculado.
 
-### 6.4.2. Configuración de los motores
+### 6.4.2. Configuración de los actuadores
 
 ```cpp
 const int PASOS_POR_VUELTA = 2048;
@@ -602,7 +581,7 @@ Su funcionamiento es el siguiente:
 4. Regresa el servomotor a 0 grados.
 5. Espera nuevamente 700 milisegundos.
 
-De esta manera, el servo realiza el movimiento necesario para accionar el mecanismo de direccionamiento.
+De esta manera, el servomotor realiza el movimiento necesario para accionar el mecanismo de direccionamiento.
 
 ### 6.4.5. Función de posicionamiento del motor paso a paso
 
@@ -662,7 +641,7 @@ void moverAlAngulo(int anguloObjetivo) {
 }
 ```
 
-Esta es una de las funciones principales del programa, ya que permite posicionar el mecanismo de selección según la moneda identificada.
+Esta función permite posicionar el mecanismo de selección según la moneda identificada.
 
 Su funcionamiento se divide en cinco operaciones:
 
@@ -742,7 +721,7 @@ En esta sección se configuran los componentes del sistema:
 - Se inicia la comunicación serial a 115200 baudios.
 - Se establece una velocidad de 10 RPM para el motor paso a paso.
 - Se configura la frecuencia del servomotor en 50 Hz.
-- Se establece el rango de pulsos de control del servo.
+- Se establece el rango de pulsos de control del servomotor.
 - Se posiciona inicialmente el servomotor en 0 grados.
 - Se muestra el menú de selección.
 
@@ -838,9 +817,9 @@ La opción 0 detiene el funcionamiento del programa y desactiva la señal del se
 
 ---
 
-## 📂 7. Estructura del proyecto
+## 7. Estructura del proyecto
 
-La siguiente es una estructura recomendada para organizar los archivos del repositorio:
+La siguiente estructura representa una organización recomendada para los archivos del repositorio:
 
 ```text
 Clasificador-Monedas-Colombianas/
@@ -872,11 +851,9 @@ Clasificador-Monedas-Colombianas/
 
 Los nombres de los archivos pueden ajustarse a la organización real del repositorio.
 
----
+## 8. Instalación y configuración
 
-## 📦 8. Instalación y configuración
-
-### 8.1. Requisitos
+### 8.1. Requisitos del sistema
 
 Para ejecutar el módulo de visión artificial se requiere:
 
@@ -887,40 +864,42 @@ Para ejecutar el módulo de visión artificial se requiere:
 - Microcontrolador ESP32.
 - Arduino IDE.
 
-### 8.2. Instalación de las dependencias
+### 8.2. Creación del entorno virtual
 
-Se recomienda crear un entorno virtual:
+Se recomienda crear un entorno virtual para administrar las dependencias del proyecto.
 
 ```powershell
 python -m venv venv
 ```
 
-Activarlo en Windows:
+Activación del entorno virtual en Windows:
 
 ```powershell
 .\venv\Scripts\Activate.ps1
 ```
 
-Instalar las bibliotecas necesarias:
+### 8.3. Instalación de dependencias
 
 ```powershell
 pip install ultralytics opencv-python pyserial
 ```
 
-### 8.3. Configuración del ESP32
+Estas bibliotecas permiten ejecutar el modelo YOLO, procesar imágenes y establecer la comunicación serial.
 
-Para programar el microcontrolador se deben instalar las siguientes bibliotecas desde el administrador de bibliotecas de Arduino IDE:
+### 8.4. Configuración del ESP32
+
+Para programar el microcontrolador se deben instalar las bibliotecas correspondientes desde el administrador de bibliotecas de Arduino IDE:
 
 - ESP32Servo.
 - Stepper.
 
 Posteriormente, se debe seleccionar la placa ESP32 correspondiente y configurar el puerto de comunicación USB.
 
----
+## 9. Ejecución del sistema
 
-## ▶️ 9. Ejecución del sistema
+### 9.1. Detección mediante cámara web
 
-### 9.1. Ejecutar la detección con cámara web
+Desde la terminal de Visual Studio Code, ejecutar:
 
 ```powershell
 python main.py webcam
@@ -930,7 +909,7 @@ Este comando inicia la cámara y permite visualizar las detecciones realizadas p
 
 Para cerrar la ventana se debe presionar la tecla `q`.
 
-### 9.2. Ejecutar la detección con una imagen
+### 9.2. Detección mediante una imagen
 
 ```powershell
 python main.py "ruta_de_la_imagen.jpg"
@@ -946,48 +925,45 @@ El microcontrolador interpreta la instrucción y ejecuta los movimientos necesar
 
 ---
 
-## 🧪 10. Resultado obtenido
+## 10. Resultados obtenidos
 
 Se obtuvo un prototipo funcional capaz de procesar monedas individualmente mediante visión artificial, identificar su denominación y diseño, transmitir la clasificación al microcontrolador y accionar los mecanismos electromecánicos para dirigir cada moneda hacia su compartimento correspondiente.
 
 La integración entre Python, YOLO y ESP32 permitió desarrollar un proceso de clasificación automatizado, reduciendo la intervención manual y demostrando la aplicación de técnicas de inteligencia artificial y control electromecánico en un sistema físico.
 
-El proyecto permitió integrar conocimientos de programación, procesamiento digital de imágenes, sistemas embebidos, electrónica y diseño mecánico en una aplicación de automatización.
+El desarrollo permitió integrar conocimientos de programación, procesamiento digital de imágenes, sistemas embebidos, electrónica y diseño mecánico en una aplicación de automatización.
 
----
+## 11. Posibles mejoras
 
-## 🚀 11. Posibles mejoras
+Como líneas de desarrollo futuro se plantean las siguientes mejoras:
 
-- Optimizar el modelo YOLO para mejorar la precisión de clasificación.
-- Implementar un sistema de detección de monedas superpuestas o mal posicionadas.
-- Incorporar sensores para verificar el paso de cada moneda.
+- Optimizar el modelo YOLO para incrementar la precisión de clasificación.
+- Implementar mecanismos de detección de monedas superpuestas o mal posicionadas.
+- Incorporar sensores para verificar el desplazamiento de cada moneda.
 - Implementar retroalimentación de posición del mecanismo.
 - Desarrollar un contador automático de monedas por denominación.
-- Incorporar una interfaz gráfica para visualizar los resultados.
-- Mejorar los tiempos de respuesta entre la identificación y el accionamiento mecánico.
+- Incorporar una interfaz gráfica para visualizar los resultados de clasificación.
+- Optimizar los tiempos de respuesta entre la identificación y el accionamiento mecánico.
 - Implementar un sistema de calibración automática de la posición inicial del motor.
 
----
+## 12. Información del proyecto
 
-## 👨‍💻 12. Autoría
+**Institución:** Universidad Militar Nueva Granada (UMNG).
 
-Proyecto académico desarrollado en el programa de **Ingeniería en Mecatrónica** de la **Universidad Militar Nueva Granada (UMNG)**.
+**Programa académico:** Ingeniería en Mecatrónica.
 
-**Áreas de desarrollo:**
+**Área de desarrollo:**
 
 - Visión artificial e inteligencia artificial.
-- Programación en Python.
 - Detección de objetos mediante YOLO.
+- Procesamiento digital de imágenes.
+- Programación en Python.
 - Sistemas embebidos.
 - Control electromecánico.
 - Automatización.
 
 ---
 
-<p align="center">
+**Sistema Automatizado de Clasificación de Monedas Colombianas**
 
-**CLASIFICADOR AUTOMATIZADO DE MONEDAS COLOMBIANAS**
-
-*Integrando inteligencia artificial, electrónica y mecánica en un solo sistema.*
-
-</p>
+*Integración de visión artificial, electrónica y mecánica para la automatización de procesos de clasificación.*
