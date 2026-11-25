@@ -1,0 +1,15 @@
+path: 'C:/Users/Cocot/OneDrive/Documentos/1. MATERIAS UNIVERSIDAD MILITAR NUEVA GRANADA/QUINTO SEMESTRE/Micros/PROYECTO-FINAL/dataset_final'
+train: images/train
+val: images/val
+test: images/test
+nc: 9
+names:
+  0: 1000_pesos
+  1: 100_pesos
+  2: 100_pesos_nueva
+  3: 200_pesos
+  4: 200_pesos_nueva
+  5: 500_pesos
+  6: 500_pesos_nueva
+  7: 50_pesos
+  8: 50_pesos_nueva

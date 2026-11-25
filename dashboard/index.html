@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · Clasificador de Monedas + Carro Oruga</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#151d33; --panel2:#1d2842; --line:#2a3a5e;
+    --text:#e8eefc; --muted:#8fa3c8; --green:#38e08a; --red:#ff6b6b;
+    --amber:#ffc857; --blue:#5aa9ff; --violet:#a98bff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:radial-gradient(1200px 600px at 10% -10%,#1b2a4d 0%,transparent 60%),var(--bg);
+    color:var(--text); font-family:"Segoe UI",system-ui,sans-serif; min-height:100vh;
+  }
+  header{
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    gap:12px; padding:18px 26px; border-bottom:1px solid var(--line);
+    background:rgba(10,16,32,.7); backdrop-filter:blur(8px); position:sticky; top:0; z-index:5;
+  }
+  h1{margin:0; font-size:22px; letter-spacing:.3px}
+  h1 span{color:var(--amber)}
+  .pills{display:flex; gap:8px; flex-wrap:wrap}
+  .pill{font-size:12px; padding:6px 11px; border-radius:999px; border:1px solid var(--line);
+        background:var(--panel); color:var(--muted)}
+  .pill.ok{color:var(--green); border-color:#1c6b47}
+  .pill.bad{color:var(--red); border-color:#7a3030}
+  main{max-width:1480px; margin:0 auto; padding:22px; display:grid; gap:18px;
+       grid-template-columns:1.35fr 1fr}
+  @media(max-width:1050px){main{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+        border-radius:16px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .card h2{margin:0 0 12px; font-size:15px; color:var(--muted); text-transform:uppercase;
+           letter-spacing:1.2px; display:flex; align-items:center; gap:8px}
+  .card h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+  .video-wrap{position:relative; border-radius:12px; overflow:hidden; background:#000;
+              border:1px solid var(--line)}
+  .video-wrap img{width:100%; display:block; aspect-ratio:4/3; object-fit:contain}
+  .badge{position:absolute; top:10px; left:10px; background:rgba(0,0,0,.65); padding:6px 10px;
+         border-radius:8px; font-size:12px; color:var(--green); border:1px solid #1c6b47}
+  .counters{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:14px}
+  .coin{background:var(--panel2); border:1px solid var(--line); border-radius:12px;
+        padding:10px; text-align:center; transition:.15s}
+  .coin.flash{border-color:var(--green); transform:scale(1.04)}
+  .coin .ico{font-size:22px}
+  .coin .name{font-size:11px; color:var(--muted); margin:3px 0}
+  .coin .num{font-size:22px; font-weight:800; color:var(--amber)}
+  .total-box{display:flex; align-items:center; justify-content:space-between;
+             background:linear-gradient(90deg,#123a2a,#1d2842); border:1px solid #1c6b47;
+             border-radius:12px; padding:12px 16px; margin-top:12px}
+  .total-box strong{font-size:30px; color:var(--green)}
+  button{cursor:pointer; font-family:inherit; color:var(--text); border:1px solid var(--line);
+         background:var(--panel2); border-radius:10px; padding:9px 12px; transition:.12s}
+  button:hover{border-color:var(--blue); background:#26355a}
+  button:active{transform:scale(.96)}
+  button.danger{border-color:#7a3030; color:var(--red)}
+  button.auto{border-color:#6d4fa8; color:var(--violet); width:100%; font-weight:700; padding:12px}
+  button.auto.on{background:#3a2a63; color:#d8c8ff; border-color:var(--violet)}
+  .dpad{display:grid; grid-template-columns:repeat(3,64px); grid-template-rows:repeat(2,58px);
+        gap:8px; justify-content:center; margin:10px 0}
+  .dpad button{font-size:22px; font-weight:700; border-radius:12px; user-select:none;
+               touch-action:none}
+  .dpad .up{grid-column:2} .dpad .left{grid-column:1; grid-row:2}
+  .dpad .stop{grid-column:2; grid-row:2} .dpad .right{grid-column:3; grid-row:2}
+  .slider{display:flex; align-items:center; gap:10px; margin:8px 0 14px; color:var(--muted); font-size:13px}
+  input[type=range]{flex:1; accent-color:var(--blue)}
+  .tele{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px}
+  .metric{background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px}
+  .metric label{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px}
+  .metric .value{font-size:26px; font-weight:800; margin-top:4px}
+  .bar{height:8px; border-radius:6px; background:#0c1426; overflow:hidden; margin-top:8px}
+  .bar i{display:block; height:100%; width:0; border-radius:6px; transition:.2s;
+         background:linear-gradient(90deg,var(--blue),var(--green))}
+  .dist-warn{color:var(--red)}
+  .log{height:120px; overflow:auto; font-family:Consolas,monospace; font-size:11px;
+       color:var(--muted); background:#0a1020; border:1px solid var(--line);
+       border-radius:10px; padding:9px; margin-top:10px}
+  .log div{padding:2px 0; border-bottom:1px solid #16203a}
+  .row{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap}
+  footer{text-align:center; color:var(--muted); font-size:12px; padding:18px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🪙 <span>UMNG</span> · Clasificador de Monedas + Carro Oruga</h1>
+  <div class="pills">
+    <span class="pill" id="pillCam">Cámara: —</span>
+    <span class="pill" id="pillSer">Serial: —</span>
+    <span class="pill" id="pillModo">Modo: —</span>
+    <span class="pill" id="pillSep">Separador: —</span>
+  </div>
+</header>
+
+<main>
+  <!-- IZQUIERDA: YOLO -->
+  <section class="card">
+    <h2><span class="dot"></span> Visión artificial · YOLOv8n contando monedas</h2>
+    <div class="video-wrap">
+      <img src="/video" alt="Video en vivo">
+      <span class="badge" id="badgeUltima">Esperando moneda…</span>
+    </div>
+
+    <div class="total-box">
+      <div>
+        <div style="color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:1px">Total de monedas contadas</div>
+        <strong id="total">0</strong>
+      </div>
+      <button onclick="reiniciar()">🔄 Reiniciar conteo</button>
+    </div>
+
+    <div class="counters" id="counters"></div>
+  </section>
+
+  <!-- DERECHA: CARRO -->
+  <section style="display:grid;gap:18px">
+    <div class="card">
+      <h2>🚜 Carro oruga · control manual</h2>
+      <div class="dpad">
+        <button class="up" data-cmd="up">▲</button>
+        <button class="left" data-cmd="left">◀</button>
+        <button class="stop" data-cmd="stop">■</button>
+        <button class="right" data-cmd="right">▶</button>
+      </div>
+      <div class="slider">
+        Velocidad <input type="range" id="vel" min="80" max="255" value="170"> <span id="velTxt">170</span>
+      </div>
+      <button class="auto" id="btnAuto" onclick="toggleAuto()">🤖 ACTIVAR MODO AUTOMÁTICO</button>
+      <div class="row">
+        <button onclick="comando('D')">📏 Medir distancia</button>
+        <button class="danger" onclick="comando('S')">🛑 Detener</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📊 Telemetría</h2>
+      <div class="tele">
+        <div class="metric">
+          <label>HC-SR04</label>
+          <div class="value" id="dist">— cm</div>
+          <div class="bar"><i id="barDist"></i></div>
+        </div>
+        <div class="metric">
+          <label>Motores</label>
+          <div class="value" id="mot">0 / 0</div>
+          <div class="bar"><i id="barIzq"></i></div>
+          <div class="bar"><i id="barDer"></i></div>
+        </div>
+        <div class="metric" style="grid-column:1/-1">
+          <label>Último caso YOLO → ESP32 separador</label>
+          <div class="value" id="ultCod" style="color:var(--green)">—</div>
+        </div>
+      </div>
+      <div class="log" id="log"></div>
+    </div>
+  </section>
+</main>
+
+<footer>Proyecto Final · Ingeniería Mecatrónica · UMNG · 2026</footer>
+
+<script>
+const NOMBRES = ["1000_pesos","100_pesos","100_pesos_nueva","200_pesos","200_pesos_nueva",
+                 "500_pesos","500_pesos_nueva","50_pesos","50_pesos_nueva"];
+const EMOJIS  = ["💰","🟡","🟡","🟡","🟡","🟡","🟡","⚪","⚪"];
+let intervalo = null;
+
+// Construir tarjetas de conteo
+const cont = document.getElementById('counters');
+NOMBRES.forEach((n,i)=>{
+  const d=document.createElement('div'); d.className='coin'; d.id='c_'+i;
+  d.innerHTML=`<div class="ico">${EMOJIS[i]}</div><div class="name">${n}</div><div class="num" id="n_${i}">0</div>`;
+  cont.appendChild(d);
+});
+
+async function comando(cmd){
+  await fetch('/api/comando',{method:'POST',headers:{'Content-Type':'application/json'},
+                              body:JSON.stringify({comando:cmd})}).catch(()=>{});
+}
+async function reiniciar(){
+  await fetch('/api/reiniciar',{method:'POST'}).catch(()=>{});
+}
+function toggleAuto(){ comando('A'); }
+
+// D-pad: mantener presionado envía continuamente
+document.querySelectorAll('[data-cmd]').forEach(btn=>{
+  const accion = btn.dataset.cmd;
+  const parar = ()=>{ if(intervalo){clearInterval(intervalo); intervalo=null;} comando('S'); };
+  btn.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    const v=parseInt(document.getElementById('vel').value);
+    const m = {up:[v,v], down:[-v,-v], left:[-v,v], right:[v,-v]}[accion];
+    if(accion==='stop'){ comando('S'); return; }
+    comando(`M,${m[0]},${m[1]}`);
+    intervalo=setInterval(()=>comando(`M,${m[0]},${m[1]}`),70);
+  });
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,parar));
+});
+
+document.getElementById('vel').addEventListener('input',e=>{
+  document.getElementById('velTxt').textContent=e.target.value;
+});
+
+async function poll(){
+  try{
+    const r=await fetch('/api/estado'); const d=await r.json();
+
+    document.getElementById('pillCam').textContent='Cámara: '+(d.camara?'● activa':'○ sin señal');
+    document.getElementById('pillCam').className='pill '+(d.camara?'ok':'bad');
+    document.getElementById('pillSer').textContent='Serial: '+(d.serial?'● conectado':'○ simulación');
+    document.getElementById('pillSer').className='pill '+(d.serial?'ok':'bad');
+    document.getElementById('pillModo').textContent='Modo: '+(d.modo_auto?'AUTOMÁTICO':'MANUAL');
+    document.getElementById('pillModo').className='pill '+(d.modo_auto?'ok':'');
+    document.getElementById('pillSep').textContent='Separador: '+(d.separador?'● conectado':'○ sin puerto');
+    document.getElementById('pillSep').className='pill '+(d.separador?'ok':'bad');
+    document.getElementById('ultCod').textContent=d.ultimo_codigo||'—';
+
+    document.getElementById('total').textContent=d.total;
+    NOMBRES.forEach((n,i)=>{
+      document.getElementById('n_'+i).textContent=d.conteo[n]||0;
+    });
+    document.getElementById('badgeUltima').textContent='Última: '+d.ultima;
+
+    document.getElementById('dist').textContent=d.distancia+' cm';
+    document.getElementById('dist').className='value '+(d.distancia<25?'dist-warn':'');
+    document.getElementById('barDist').style.width=Math.max(0,Math.min(100,(300-d.distancia)/3))+'%';
+    document.getElementById('mot').textContent=d.izq+' / '+d.der;
+    document.getElementById('barIzq').style.width=Math.abs(d.izq)/255*100+'%';
+    document.getElementById('barDer').style.width=Math.abs(d.der)/255*100+'%';
+
+    const btn=document.getElementById('btnAuto');
+    btn.textContent=d.modo_auto?'🤖 MODO AUTOMÁTICO ACTIVO':'🤖 ACTIVAR MODO AUTOMÁTICO';
+    btn.classList.toggle('on',d.modo_auto);
+
+    document.getElementById('log').innerHTML=d.logs.map(x=>'<div>'+x+'</div>').join('');
+  }catch(e){}
+}
+setInterval(poll,250); poll();
+</script>
+</body>
+</html>

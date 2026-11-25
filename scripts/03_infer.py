@@ -1,12 +1,15 @@
 import sys, os, glob
 from ultralytics import YOLO
 
-ROOT = r"D:\Documents\Proyecto predeterminado\yolo_monedas_colombia"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # pick the most recent best.pt under runs/
+PREFERRED = os.path.join(ROOT, "runs", "monedas_balanceado_v2", "weights", "best.pt")
 candidates = glob.glob(os.path.join(ROOT, "runs", "*", "weights", "best.pt"))
 if not candidates:
     candidates = glob.glob(os.path.join(ROOT, "runs", "*", "weights", "last.pt"))
-WEIGHTS = max(candidates, key=os.path.getmtime) if candidates else None
+WEIGHTS = PREFERRED if os.path.exists(PREFERRED) else (
+    max(candidates, key=os.path.getmtime) if candidates else None
+)
 
 def main():
     if WEIGHTS is None or not os.path.exists(WEIGHTS):
@@ -17,7 +20,7 @@ def main():
         return
     src = sys.argv[1]
     model = YOLO(WEIGHTS)
-    results = model.predict(source=src, conf=0.25, imgsz=320, save=True,
+    results = model.predict(source=src, conf=0.25, imgsz=416, save=True,
                             project=os.path.join(ROOT,"runs","infer"), name="pred")
     for r in results:
         print(r.path)

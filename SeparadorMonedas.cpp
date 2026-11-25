@@ -1,198 +1,219 @@
-/*
-#include <ESP32Servo.h>
 #include <Stepper.h>
-#include <math.h>
-*/
-// ---------- CONFIGURACION DEL MOTOR PASO A PASO ----------
-const int PASOS_POR_VUELTA = 2048;
+#include <ESP32Servo.h>
 
-Stepper motor(PASOS_POR_VUELTA, 18, 21, 19, 22);
+const long PASOS_VUELTA = 2048;
 
-// ---------- CONFIGURACION DEL SERVO ----------
+#define IN1 18
+#define IN2 19
+#define IN3 21
+#define IN4 22
+
+// Servo del mecanismo de direccionamiento
+#define PIN_SERVO 12
 Servo miServo;
-const int PIN_SERVO = 12;
 
-// ---------- VARIABLES ----------
-int opcion = -1;
-int posicionActual = 0;
+// Pin de control de la banda transportadora
+#define PIN_BANDA 13
 
-// ---------- FUNCION DEL SERVO ----------
+// La banda enciende al recibir el caso y se apaga 10 s despues
+const unsigned long DURACION_BANDA = 10000;
+unsigned long momentoBanda = 0;
+bool bandaPendiente = false;   // true mientras corre el temporizador de apagado
+bool bandaEncendida = false;
+
+Stepper motor(PASOS_VUELTA, IN1, IN3, IN2, IN4);
+
+// Posicion actual en pasos
+long posicionActual = 0;
+
+// Angulos fijos de las monedas (los que envia YOLO por los casos 1..10)
+const int ANGULO_MONEDA[11] = {
+  0,
+  0,    // 1  $50 antigua  -> 0 grados (cero)
+  38,   // 2  $100 antigua
+  75,   // 3  $200 antigua
+  110,  // 4  $500 antigua
+  148,  // 5  libre
+  215,  // 6  $50 nueva
+  182,  // 7  $100 nueva
+  250,  // 8  $200 nueva
+  285,  // 9  $500 nueva
+  320   // 10 $1000
+};
+
+// ---------- SERVO: gira a 90 y vuelve a 0 ----------
 void accionarServo() {
-  delay(2000); 
-  Serial.println("Servo girando a 180 grados");
-
-  miServo.write(180);
+  Serial.println("Servo girando a 90 grados");
+  miServo.write(90);
   delay(700);
-
   Serial.println("Servo regresando a 0 grados");
-
   miServo.write(0);
   delay(700);
 }
 
-// ---------- FUNCION DEL MOTOR ----------
-void moverAlAngulo(int anguloObjetivo) {
-
-  // Normalizar el angulo objetivo entre 0 y 359
-  anguloObjetivo = ((anguloObjetivo % 360) + 360) % 360;
-
-  // Normalizar la posicion actual
-  int posicionNormalizada =
-      ((posicionActual % 360) + 360) % 360;
-
-  // Calcular la diferencia angular
-  int diferencia = anguloObjetivo - posicionNormalizada;
-
-  // Buscar el camino mas corto
-  if (diferencia > 180) {
-    diferencia -= 360;
-  }
-
-  if (diferencia < -180) {
-    diferencia += 360;
-  }
-
-  // Convertir grados a pasos
-  long pasos = round(
-      (float)diferencia * PASOS_POR_VUELTA / 360.0
-  );
-
-  Serial.println("\n--- MOVIMIENTO DEL MOTOR ---");
-
-  Serial.print("Posicion actual: ");
-  Serial.println(posicionActual);
-
-  Serial.print("Angulo objetivo: ");
-  Serial.println(anguloObjetivo);
-
-  Serial.print("Giro necesario: ");
-  Serial.println(diferencia);
-
-  Serial.print("Pasos: ");
-  Serial.println(pasos);
-
-  // Primero mover el motor paso a paso
-  motor.step(pasos);
-
-  // Actualizar la posicion
-  posicionActual = anguloObjetivo;
-
-  Serial.println("Motor en posicion.");
-
-  // Solo cuando termina el motor, accionar el servo
-  accionarServo();
-
-  Serial.println("Proceso terminado.");
-}
-
-// ---------- MENU ----------
-void mostrarMenu() {
-  Serial.println("\n===== MENU DE MONEDAS =====");
-  Serial.println("1. Moneda de 50 pesos  - 0 grados");
-  Serial.println("2. Moneda de 100 pesos - 38 grados");
-  Serial.println("3. Moneda de 200 pesos - 75 grados");
-  Serial.println("4. Moneda de 500 pesos - 110 grados");
-  Serial.println("5. Moneda de 1000 pesos - 148 grados");
-  Serial.println("6. Moneda de 50 pesos  - 215 grados");
-  Serial.println("7. Moneda de 100 pesos - 182 grados");
-  Serial.println("8. Moneda de 200 pesos - 250 grados");
-  Serial.println("9. Moneda de 500 pesos - 285 grados");
-  Serial.println("10. Moneda de 1000 pesos - 320 grados");
-  Serial.println("0. Salir");
-  Serial.println("Selecciona una opcion:");
-}
-
-// ---------- SETUP ----------
 void setup() {
   Serial.begin(115200);
+  Serial.setTimeout(100);
 
-  // Configurar velocidad del motor
-  motor.setSpeed(10);
+  motor.setSpeed(8);
 
-  // Configurar servo
   miServo.setPeriodHertz(50);
   miServo.attach(PIN_SERVO, 500, 2400);
-
-  // Posicion inicial del servo
   miServo.write(0);
   delay(500);
 
-  Serial.println("Sistema de clasificacion de monedas iniciado.");
-  Serial.println("Posicion inicial del motor asumida: 0 grados.");
+  pinMode(PIN_BANDA, OUTPUT);
+  digitalWrite(PIN_BANDA, LOW);   // banda apagada al iniciar
 
-  mostrarMenu();
+  Serial.println("CONTROL ANGULAR");
+  Serial.println("Posicion inicial: 0 grados");
+  Serial.println("Ingresa un angulo de 0 a 360:");
+  Serial.println("Z = registrar cero | Z+ / Z- = ajuste fino | ZZ = ver cero");
+  Serial.println("P,<angulo> = fijar posicion inicial (ej. P,30 sin mover)");
+  Serial.println("B = banda ON/OFF (con un caso YOLO enciende 10 s y se apaga)");
 }
 
-// ---------- LOOP ----------
 void loop() {
 
-  // Esperar una opcion del usuario
-  while (Serial.available() == 0) {
-    // Esperando entrada
+  // ---- TEMPORIZADOR DE APAGADO (no bloqueante) ----
+  if (bandaPendiente && (millis() - momentoBanda >= DURACION_BANDA)) {
+    digitalWrite(PIN_BANDA, LOW);
+    bandaEncendida = false;
+    bandaPendiente = false;
+    Serial.println("Banda transportadora APAGADA (10 s de funcionamiento)");
   }
 
-  opcion = Serial.parseInt();
+  if (Serial.available() > 0) {
 
-  // Limpiar caracteres pendientes
-  while (Serial.available() > 0) {
-    Serial.read();
-  }
+    String entrada = Serial.readStringUntil('\n');
+    entrada.trim();
 
-  // Seleccionar la moneda
-  switch (opcion) {
+    if (entrada.length() == 0) return;
 
-    case 1:
-      moverAlAngulo(0);
-      break;
+    // ---- AJUSTE MANUAL DEL CERO ----
+    if (entrada == "Z") {
+      posicionActual = 0;              // la posicion fisica actual pasa a ser 0
+      Serial.println("Cero registrado en la posicion actual");
+      return;
+    }
+    if (entrada == "Z+" || entrada == "Z-") {
+      long paso = round(PASOS_VUELTA / 360.0);   // ~6 pasos = 1 grado
+      long delta = (entrada == "Z+") ? paso : -paso;
 
-    case 2:
-      moverAlAngulo(38);
-      break;
+      // camino mas corto
+      if (delta > PASOS_VUELTA / 2) delta -= PASOS_VUELTA;
+      else if (delta < -PASOS_VUELTA / 2) delta += PASOS_VUELTA;
 
-    case 3:
-      moverAlAngulo(75);
-      break;
+      motor.step(delta);
+      posicionActual += delta;
+      posicionActual = 0;              // nueva posicion = cero
+      Serial.print("Cero ajustado ");
+      Serial.println(entrada);
+      return;
+    }
+    if (entrada == "ZZ") {
+      Serial.print("Cero actual: ");
+      Serial.println(posicionActual * 360.0 / PASOS_VUELTA);
+      return;
+    }
 
-    case 4:
-      moverAlAngulo(110);
-      break;
-
-    case 5:
-      moverAlAngulo(148);
-      break;
-
-    case 6:
-      moverAlAngulo(215);
-      break;
-
-    case 7:
-      moverAlAngulo(182);
-      break;
-
-    case 8:
-      moverAlAngulo(250);
-      break;
-
-    case 9:
-      moverAlAngulo(285);
-      break;
-
-    case 10:
-      moverAlAngulo(320);
-      break;
-
-    case 0:
-      Serial.println("Programa finalizado.");
-      miServo.detach();
-      while (true) {
-        // Sistema detenido
+    // Posicion inicial: P,<angulo> -> el motor NO se mueve, solo se le dice
+    // en que angulo esta ahora. Ej: P,30 -> "estoy en 30 grados".
+    if (entrada.startsWith("P,")) {
+      float ang = entrada.substring(2).toFloat();
+      if (ang < 0 || ang > 360) {
+        Serial.println("Angulo invalido (0-360)");
+        return;
       }
-      break;
+      if (ang == 360) ang = 0;
+      posicionActual = round(ang * PASOS_VUELTA / 360.0);
+      Serial.print("Posicion inicial fijada en ");
+      Serial.print(ang);
+      Serial.println(" grados (sin mover el motor)");
+      return;
+    }
 
-    default:
-      Serial.println("Opcion no valida.");
-      break;
+    // Banda: apagar/encender manualmente
+    if (entrada == "B") {
+      bandaEncendida = !bandaEncendida;
+      bandaPendiente = false;
+      digitalWrite(PIN_BANDA, bandaEncendida ? HIGH : LOW);
+      Serial.println(bandaEncendida ? "Banda ENCENDIDA" : "Banda APAGADA");
+      return;
+    }
+
+    // ---- CASOS QUE MANDA YOLO ----
+    int opcion = entrada.toInt();
+    if (opcion >= 1 && opcion <= 10) {
+      float angulo = ANGULO_MONEDA[opcion];
+
+      long destino = round(angulo * PASOS_VUELTA / 360.0);
+      long diferencia = destino - posicionActual;
+
+      if (diferencia > PASOS_VUELTA / 2) diferencia -= PASOS_VUELTA;
+      else if (diferencia < -PASOS_VUELTA / 2) diferencia += PASOS_VUELTA;
+
+      Serial.print("Caso ");
+      Serial.print(opcion);
+      Serial.print(" -> ");
+      Serial.print(angulo);
+      Serial.println(" grados");
+
+      motor.step(diferencia);
+      posicionActual = destino;
+
+      // Mover el servo del mecanismo de direccionamiento
+      accionarServo();
+
+      // Banda ENCENDIDA de inmediato y apagado automatico en 10 s
+      digitalWrite(PIN_BANDA, HIGH);
+      bandaEncendida = true;
+      bandaPendiente = true;
+      momentoBanda = millis();
+      Serial.println("Banda transportadora ENCENDIDA (se apagara en 10 s)");
+
+      Serial.println("Esperando siguiente orden...");
+      Serial.println("-------------------------");
+      return;
+    }
+
+    // ---- ANGULO MANUAL (tu codigo original) ----
+    float angulo = entrada.toFloat();
+
+    if (angulo < 0 || angulo > 360) {
+      Serial.println("Angulo invalido");
+      return;
+    }
+
+    if (angulo == 360) angulo = 0;
+
+    long destino = round(angulo * PASOS_VUELTA / 360.0);
+    long diferencia = destino - posicionActual;
+
+    if (diferencia > PASOS_VUELTA / 2) {
+      diferencia -= PASOS_VUELTA;
+    }
+    else if (diferencia < -PASOS_VUELTA / 2) {
+      diferencia += PASOS_VUELTA;
+    }
+
+    Serial.print("Posicion anterior: ");
+    Serial.println(posicionActual * 360.0 / PASOS_VUELTA);
+
+    Serial.print("Destino: ");
+    Serial.println(angulo);
+
+    Serial.print("Movimiento: ");
+    Serial.println(diferencia * 360.0 / PASOS_VUELTA);
+
+    motor.step(diferencia);
+
+    posicionActual = destino;
+
+    Serial.print("Posicion guardada: ");
+    Serial.println(posicionActual * 360.0 / PASOS_VUELTA);
+
+    Serial.println("Esperando siguiente orden...");
+    Serial.println("-------------------------");
   }
-
-  mostrarMenu();
 }

@@ -10,7 +10,7 @@ from ultralytics import YOLO
 # CONFIGURACION
 # ==========================================
 
-ROOT = r"C:\Users\Cocot\Desktop\yolo_monedas_colombia - copia"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Buscar el modelo entrenado más reciente
 candidates = glob.glob(
@@ -27,7 +27,8 @@ if not candidates:
     print("Busca tu archivo best.pt y revisa la ruta ROOT.")
     sys.exit(1)
 
-WEIGHTS = max(candidates, key=os.path.getmtime)
+PREFERRED = os.path.join(ROOT, "runs", "monedas_balanceado_v2", "weights", "best.pt")
+WEIGHTS = PREFERRED if os.path.exists(PREFERRED) else max(candidates, key=os.path.getmtime)
 
 print("=" * 45)
 print("DIAGNOSTICO YOLO - MONEDAS COLOMBIANAS")
@@ -80,7 +81,7 @@ while True:
     result = model.predict(
         source=frame,
         conf=0.10,
-        imgsz=640,
+        imgsz=416,
         verbose=False
     )[0]
 

@@ -1,7 +1,7 @@
 import os, random
 from PIL import Image, ImageDraw, ImageFont
 
-ROOT = r"D:\Documents\Proyecto predeterminado\yolo_monedas_colombia"
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 IMG_TRAIN = os.path.join(ROOT, "data", "images", "train")
 IMG_VAL = os.path.join(ROOT, "data", "images", "val")
 LBL_TRAIN = os.path.join(ROOT, "data", "labels", "train")

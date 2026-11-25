@@ -1,7 +1,8 @@
-path: 'C:/Users/Cocot/Desktop/yolo_monedas_colombia - copia/dataset_5clases'
+path: 'C:/Users/Cocot/OneDrive/Documentos/1. MATERIAS UNIVERSIDAD MILITAR NUEVA GRANADA/QUINTO SEMESTRE/Micros/PROYECTO-FINAL/dataset_5clases'
 train: images/train
 val: images/val
 test: images/test
+
 nc: 5
 names:
   0: 1000_pesos
